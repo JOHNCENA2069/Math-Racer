@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Racer - Learn Math While Racing!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-yellow: #FFD93D;
+            --primary-orange: #FF8C42;
+            --primary-pink: #FF6B9D;
+            --primary-purple: #C56CF0;
+            --primary-blue: #4ECDC4;
+            --primary-green: #7BED9F;
+            --road-dark: #2C3E50;
+            --road-light: #34495E;
+            --white: #FFFFFF;
+            --dark: #1A1A2E;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .game-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            max-height: 800px;
+            background: 
+                linear-gradient(180deg, 
+                    #1a1a2e 0%, 
+                    #16213e 15%,
+                    #1a1a2e 30%,
+                    #0f0f23 100%);
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+        }
+
+        .game-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(255,255,255,0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 10%, rgba(255,255,255,0.02) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .horizon {
+            position: absolute;
+            bottom: 55%;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(180deg, 
+                transparent 0%,
+                #1a3a1a 30%,
+                #2d4a2d 60%,
+                #3d5a3d 100%);
+            pointer-events: none;
+        }
+
+        .horizon::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(90deg,
+                    transparent 0px,
+                    transparent 40px,
+                    rgba(0,0,0,0.1) 40px,
+                    rgba(0,0,0,0.1) 80px);
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 55%;
+            background: linear-gradient(180deg,
+                #3d5a3d 0%,
+                #4a6b4a 20%,
+                #5a7b5a 50%,
+                #4a6b4a 100%);
+            pointer-events: none;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #FFD93D 0%, #FF8C42 50%, #FF6B9D 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        .start-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.1);
+        }
+
+        .game-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 3.5rem;
+            color: var(--white);
+            text-shadow: 4px 4px 0 var(--primary-purple), 8px 8px 0 rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+            animation: bounce 2s infinite;
+        }
+
+        .game-subtitle {
+            font-size: 1.2rem;
+            color: var(--white);
+            margin-bottom: 40px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .car-preview {
+            font-size: 5rem;
+            margin-bottom: 30px;
+            animation: sway 1.5s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .start-btn {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.8rem;
+            padding: 20px 60px;
+            background: var(--white);
+            color: var(--primary-orange);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #E67E22, 0 15px 30px rgba(0,0,0,0.3);
+            transition: all 0.1s;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 11px 0 #E67E22, 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .start-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #E67E22, 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .instructions {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .instructions h3 {
+            color: var(--white);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .instructions p {
+            color: var(--white);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .key-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,255,255,0.3);
+            padding: 5px 12px;
+            border-radius: 8px;
+            margin: 3px;
+            font-weight: 700;
+        }
+
+        /* Game UI */
+        .game-hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 50;
+            background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 100%);
+        }
+
+        .score-box, .level-box, .high-score-box {
+            background: var(--white);
+            padding: 10px 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .score-label, .level-label, .high-score-label {
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .score-value, .level-value {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.5rem;
+            color: var(--primary-orange);
+        }
+
+        .high-score-value {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            color: var(--primary-purple);
+        }
+
+        .high-score-box {
+            padding: 8px 15px;
+        }
+
+        .question-display {
+            position: absolute;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--white);
+            padding: 15px 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            z-index: 50;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .question-label {
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .question-text {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            color: var(--dark);
+        }
+
+        /* Road */
+        .road {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 280px;
+            height: 100%;
+            background: linear-gradient(90deg,
+                #1a1a1a 0%,
+                #2a2a2a 5%,
+                #333333 50%,
+                #2a2a2a 95%,
+                #1a1a1a 100%);
+            box-shadow: -15px 0 30px rgba(0,0,0,0.5), 15px 0 30px rgba(0,0,0,0.5);
+        }
+
+        .road::before,
+        .road::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 8px;
+            height: 100%;
+            background: #f0f0f0;
+        }
+
+        .road::before { left: 8px; }
+        .road::after { right: 8px; }
+
+        .road-line {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                var(--primary-yellow) 0px,
+                var(--primary-yellow) 40px,
+                transparent 40px,
+                transparent 80px
+            );
+            animation: road-scroll 0.5s linear infinite;
+        }
+
+        @keyframes road-scroll {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 80px; }
+        }
+
+        .lane-divider-left, .lane-divider-right {
+            position: absolute;
+            width: 4px;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(255,255,255,0.3) 0px,
+                rgba(255,255,255,0.3) 20px,
+                transparent 20px,
+                transparent 40px
+            );
+            animation: road-scroll 0.5s linear infinite;
+        }
+
+        .lane-divider-left { left: 25%; }
+        .lane-divider-right { right: 25%; }
+
+        /* Side scenery */
+        .grass-left, .grass-right {
+            display: none;
+        }
+
+        .tree {
+            display: none;
+        }
+
+        /* Player Car */
+        .player-car {
+            position: absolute;
+            bottom: 120px;
+            width: 50px;
+            height: 80px;
+            transition: left 0.15s ease-out;
+            z-index: 40;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6));
+        }
+
+        .player-car.lane-left {
+            left: calc(50% - 70px - 25px);
+        }
+
+        .player-car.lane-right {
+            left: calc(50% + 70px - 25px);
+        }
+
+        .car-body {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Answer Gates */
+        .gate {
+            position: absolute;
+            width: 120px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            color: var(--white);
+            z-index: 30;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+
+        .gate.left {
+            left: calc(50% - 130px);
+        }
+
+        .gate.right {
+            left: calc(50% + 10px);
+        }
+
+        .gate.correct,
+        .gate.incorrect {
+            background: linear-gradient(135deg, #4A90D9, #2E6AB3);
+            border: 4px solid #1E4A7D;
+        }
+
+        .gate:hover {
+            transform: scale(1.02);
+        }
+
+        /* Feedback Effects */
+        .feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Fredoka One', cursive;
+            font-size: 3rem;
+            z-index: 60;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .feedback.correct-feedback {
+            color: var(--primary-green);
+            text-shadow: 3px 3px 0 #27AE60;
+            animation: feedback-pop 0.8s ease-out forwards;
+        }
+
+        .feedback.incorrect-feedback {
+            color: #FF6B6B;
+            text-shadow: 3px 3px 0 #C0392B;
+            animation: feedback-pop 0.8s ease-out forwards;
+        }
+
+        @keyframes feedback-pop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -80%) scale(1); }
+        }
+
+        /* Speed Lines Effect */
+        .speed-lines {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .speed-lines.active {
+            opacity: 1;
+        }
+
+        .speed-line {
+            position: absolute;
+            width: 3px;
+            height: 100px;
+            background: linear-gradient(180deg, transparent, rgba(255,255,255,0.5), transparent);
+            animation: speed-line-fall 0.3s linear infinite;
+        }
+
+        @keyframes speed-line-fall {
+            0% { transform: translateY(-100px); }
+            100% { transform: translateY(900px); }
+        }
+
+        /* Game Over Screen */
+        .game-over-screen {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(26,26,46,0.95), rgba(44,62,80,0.95));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        .game-over-screen.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .game-over-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 3rem;
+            color: var(--primary-pink);
+            text-shadow: 4px 4px 0 rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            background: var(--white);
+            padding: 20px 50px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+        }
+
+        .final-score-label {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .final-score-value {
+            font-family: 'Fredoka One', cursive;
+            font-size: 3rem;
+            color: var(--primary-orange);
+        }
+
+        .new-high-score {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.5rem;
+            color: var(--primary-yellow);
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+            animation: pulse 0.5s ease-in-out infinite;
+            display: none;
+        }
+
+        .new-high-score.visible {
+            display: block;
+        }
+
+        .best-score-display {
+            background: rgba(255,255,255,0.15);
+            padding: 12px 30px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+        .best-score-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.7);
+            text-transform: uppercase;
+        }
+
+        .best-score-value {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.8rem;
+            color: var(--primary-yellow);
+        }
+
+        .stats-box {
+            background: rgba(255,255,255,0.1);
+            padding: 20px 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .stat-item {
+            color: var(--white);
+            margin: 8px 0;
+            font-size: 1rem;
+        }
+
+        .stat-value {
+            font-weight: 800;
+            color: var(--primary-yellow);
+        }
+
+        .play-again-btn {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.5rem;
+            padding: 18px 50px;
+            background: linear-gradient(135deg, var(--primary-green), #2ECC71);
+            color: var(--white);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #27AE60, 0 12px 30px rgba(0,0,0,0.3);
+            transition: all 0.1s;
+        }
+
+        .play-again-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .play-again-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #27AE60, 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Lives Display */
+        .lives-box {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            display: flex;
+            gap: 5px;
+            z-index: 50;
+        }
+
+        .life {
+            font-size: 1.5rem;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+
+        .life.lost {
+            opacity: 0.3;
+            transform: scale(0.8);
+        }
+
+        /* Mobile Controls */
+        .mobile-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 50;
+        }
+
+        .control-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.9);
+            border: 4px solid var(--primary-purple);
+            font-size: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+            background: var(--primary-yellow);
+        }
+
+        /* Streak Display */
+        .streak-display {
+            position: absolute;
+            top: 160px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary-purple), var(--primary-pink));
+            padding: 8px 20px;
+            border-radius: 20px;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 0.9rem;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .streak-display.visible {
+            opacity: 1;
+        }
+
+        /* Combo multiplier */
+        .combo-text {
+            position: absolute;
+            top: 195px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Fredoka One', cursive;
+            font-size: 1rem;
+            color: var(--primary-yellow);
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .combo-text.visible {
+            opacity: 1;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.1); }
+        }
+
+        /* Difficulty indicator */
+        .difficulty-badge {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            z-index: 50;
+        }
+
+        .difficulty-badge.easy {
+            background: var(--primary-green);
+            color: #155724;
+        }
+
+        .difficulty-badge.medium {
+            background: var(--primary-yellow);
+            color: #856404;
+        }
+
+        .difficulty-badge.hard {
+            background: var(--primary-orange);
+            color: #721c24;
+        }
+
+        .difficulty-badge.expert {
+            background: var(--primary-pink);
+            color: var(--white);
+        }
+
+        /* Responsive */
+        @media (max-width: 520px) {
+            .game-wrapper {
+                border-radius: 0;
+                max-height: 100vh;
+            }
+
+            .game-title {
+                font-size: 2.5rem;
+            }
+
+            .question-text {
+                font-size: 1.5rem;
+            }
+
+            .gate {
+                width: 100px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+
+            .gate.left {
+                left: calc(50% - 115px);
+            }
+
+            .gate.right {
+                left: calc(50% + 15px);
+            }
+
+            .road {
+                width: 240px;
+            }
+
+            .player-car {
+                width: 40px;
+                height: 65px;
+            }
+
+            .player-car.lane-left {
+                left: calc(50% - 60px - 20px);
+            }
+
+            .player-car.lane-right {
+                left: calc(50% + 60px - 20px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper" id="gameWrapper">
+        <!-- Background elements -->
+        <div class="stars" id="starsContainer"></div>
+        <div class="horizon"></div>
+        <div class="ground"></div>
+
+        <!-- Start Screen -->
+        <div class="start-screen" id="startScreen">
+            <h1 class="game-title">Math Racer</h1>
+            <p class="game-subtitle">Learn Math While Racing! 🏁</p>
+            <div class="car-preview">
+                <svg width="80" height="120" viewBox="0 0 50 80" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 55 L10 35 Q10 25 15 20 L20 12 Q25 8 30 12 L35 20 Q40 25 40 35 L40 55 Q40 65 35 68 L15 68 Q10 65 10 55" fill="#E53935"/>
+                    <path d="M12 55 L12 36 Q12 28 16 22 L20 15 Q25 12 28 15 L30 18 Q22 22 20 30 L18 50 Q18 58 20 62 L15 62 Q12 60 12 55" fill="#EF5350" opacity="0.6"/>
+                    <path d="M15 32 L18 22 Q25 18 32 22 L35 32 Q35 36 30 38 L20 38 Q15 36 15 32" fill="#1a237e"/>
+                    <ellipse cx="16" cy="25" rx="3" ry="4" fill="#FFF9C4"/>
+                    <ellipse cx="34" cy="25" rx="3" ry="4" fill="#FFF9C4"/>
+                    <ellipse cx="16" cy="25" rx="2" ry="3" fill="#FFFF00"/>
+                    <ellipse cx="34" cy="25" rx="2" ry="3" fill="#FFFF00"/>
+                    <rect x="6" y="28" width="6" height="14" rx="2" fill="#212121"/>
+                    <rect x="38" y="28" width="6" height="14" rx="2" fill="#212121"/>
+                    <rect x="6" y="48" width="6" height="14" rx="2" fill="#212121"/>
+                    <rect x="38" y="48" width="6" height="14" rx="2" fill="#212121"/>
+                </svg>
+            </div>
+            <button class="start-btn" id="startBtn">START RACE!</button>
+            <div class="instructions">
+                <h3>How to Play</h3>
+                <p>Answer math questions by driving through the correct gate!</p>
+                <p>
+                    <span class="key-hint">← A</span>
+                    <span class="key-hint">D →</span>
+                    or tap buttons
+                </p>
+            </div>
+        </div>
+
+        <!-- Game HUD -->
+        <div class="difficulty-badge easy" id="difficultyBadge">Easy</div>
+        <div class="game-hud">
+            <div class="score-box">
+                <div class="score-label">Score</div>
+                <div class="score-value" id="scoreDisplay">0</div>
+            </div>
+            <div class="high-score-box">
+                <div class="high-score-label">Best</div>
+                <div class="high-score-value" id="highScoreDisplay">0</div>
+            </div>
+            <div class="level-box">
+                <div class="level-label">Level</div>
+                <div class="level-value" id="levelDisplay">1</div>
+            </div>
+        </div>
+
+        <div class="lives-box" id="livesBox">
+            <span class="life">❤️</span>
+            <span class="life">❤️</span>
+            <span class="life">❤️</span>
+        </div>
+
+        <div class="question-display">
+            <div class="question-label">Solve</div>
+            <div class="question-text" id="questionText">3 + 4 = ?</div>
+        </div>
+
+        <div class="streak-display" id="streakDisplay">🔥 Streak: 0</div>
+        <div class="combo-text" id="comboText">2x COMBO!</div>
+
+        <!-- Road -->
+        <div class="grass-left" id="grassLeft"></div>
+        <div class="grass-right" id="grassRight"></div>
+
+        <div class="road">
+            <div class="road-line"></div>
+        </div>
+
+        <!-- Speed Lines -->
+        <div class="speed-lines" id="speedLines"></div>
+
+        <!-- Player Car -->
+        <div class="player-car lane-left" id="playerCar">
+            <svg class="car-body" viewBox="0 0 50 80" xmlns="http://www.w3.org/2000/svg">
+                <!-- Car shadow -->
+                <ellipse cx="25" cy="75" rx="20" ry="4" fill="rgba(0,0,0,0.3)"/>
+                
+                <!-- Main body -->
+                <path d="M10 55 L10 35 Q10 25 15 20 L20 12 Q25 8 30 12 L35 20 Q40 25 40 35 L40 55 Q40 65 35 68 L15 68 Q10 65 10 55" fill="#E53935"/>
+                
+                <!-- Body shine -->
+                <path d="M12 55 L12 36 Q12 28 16 22 L20 15 Q25 12 28 15 L30 18 Q22 22 20 30 L18 50 Q18 58 20 62 L15 62 Q12 60 12 55" fill="#EF5350" opacity="0.6"/>
+                
+                <!-- Windshield -->
+                <path d="M15 32 L18 22 Q25 18 32 22 L35 32 Q35 36 30 38 L20 38 Q15 36 15 32" fill="#1a237e"/>
+                <path d="M16 31 L19 23 Q24 20 28 23 L29 28 Q26 30 22 30 Q18 30 16 31" fill="#3949ab" opacity="0.5"/>
+                
+                <!-- Rear window -->
+                <path d="M17 52 L17 46 Q17 44 20 44 L30 44 Q33 44 33 46 L33 52 Q33 54 30 54 L20 54 Q17 54 17 52" fill="#1a237e"/>
+                
+                <!-- Headlights -->
+                <ellipse cx="16" cy="25" rx="3" ry="4" fill="#FFF9C4"/>
+                <ellipse cx="34" cy="25" rx="3" ry="4" fill="#FFF9C4"/>
+                <ellipse cx="16" cy="25" rx="2" ry="3" fill="#FFFF00"/>
+                <ellipse cx="34" cy="25" rx="2" ry="3" fill="#FFFF00"/>
+                
+                <!-- Taillights -->
+                <rect x="12" y="62" width="6" height="4" rx="1" fill="#FF5722"/>
+                <rect x="32" y="62" width="6" height="4" rx="1" fill="#FF5722"/>
+                
+                <!-- Wheels -->
+                <rect x="6" y="28" width="6" height="14" rx="2" fill="#212121"/>
+                <rect x="38" y="28" width="6" height="14" rx="2" fill="#212121"/>
+                <rect x="6" y="48" width="6" height="14" rx="2" fill="#212121"/>
+                <rect x="38" y="48" width="6" height="14" rx="2" fill="#212121"/>
+                
+                <!-- Wheel details -->
+                <rect x="7" y="30" width="4" height="2" rx="1" fill="#424242"/>
+                <rect x="7" y="34" width="4" height="2" rx="1" fill="#424242"/>
+                <rect x="7" y="38" width="4" height="2" rx="1" fill="#424242"/>
+                <rect x="39" y="30" width="4" height="2" rx="1" fill="#424242"/>
+                <rect x="39" y="34" width="4" height="2" rx="1" fill="#424242"/>
+                <rect x="39" y="38" width="4" height="2" rx="1" fill="#424242"/>
+                
+                <rect x="7" y="50" width="4" height="2" rx="1" fill="#424242"/>
+                <rect x="7" y="54" width="4" height="2" rx="1" fill="#424242"/>
+                <rect x="7" y="58" width="4" height="2" rx="1" fill="#424242"/>
+                <rect x="39" y="50" width="4" height="2" rx="1" fill="#424242"/>
+                <rect x="39" y="54" width="4" height="2" rx="1" fill="#424242"/>
+                <rect x="39" y="58" width="4" height="2" rx="1" fill="#424242"/>
+                
+                <!-- Hood details -->
+                <path d="M22 20 L22 28 M28 20 L28 28" stroke="#C62828" stroke-width="1"/>
+                <circle cx="25" cy="16" r="2" fill="#B71C1C"/>
+            </svg>
+        </div>
+
+        <!-- Answer Gates Container -->
+        <div id="gatesContainer"></div>
+
+        <!-- Feedback -->
+        <div class="feedback" id="feedback"></div>
+
+        <!-- Mobile Controls -->
+        <div class="mobile-controls">
+            <button class="control-btn" id="leftBtn">⬅️</button>
+            <button class="control-btn" id="rightBtn">➡️</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div class="game-over-screen" id="gameOverScreen">
+            <h2 class="game-over-title">Race Over!</h2>
+            <div class="new-high-score" id="newHighScore">🏆 NEW HIGH SCORE! 🏆</div>
+            <div class="final-score">
+                <div class="final-score-label">Final Score</div>
+                <div class="final-score-value" id="finalScore">0</div>
+            </div>
+            <div class="best-score-display">
+                <div class="best-score-label">Best Score</div>
+                <div class="best-score-value" id="bestScoreDisplay">0</div>
+            </div>
+            <div class="stats-box">
+                <div class="stat-item">Questions Answered: <span class="stat-value" id="statAnswered">0</span></div>
+                <div class="stat-item">Correct Answers: <span class="stat-value" id="statCorrect">0</span></div>
+                <div class="stat-item">Best Streak: <span class="stat-value" id="statStreak">0</span></div>
+                <div class="stat-item">Level Reached: <span class="stat-value" id="statLevel">1</span></div>
+            </div>
+            <button class="play-again-btn" id="playAgainBtn">🏁 Race Again!</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        const state = {
+            score: 0,
+            level: 1,
+            lives: 3,
+            streak: 0,
+            bestStreak: 0,
+            questionsAnswered: 0,
+            correctAnswers: 0,
+            playerLane: 'left', // 'left' or 'right'
+            currentQuestion: null,
+            correctAnswer: null,
+            wrongAnswer: null,
+            correctLane: 'left',
+            gates: [],
+            gameSpeed: 3, // seconds for gate to travel
+            isPlaying: false,
+            gateSpawnInterval: null,
+            animationFrame: null,
+            highScore: parseInt(localStorage.getItem('mathRacerHighScore')) || 0
+        };
+
+        // DOM Elements
+        const elements = {
+            startScreen: document.getElementById('startScreen'),
+            startBtn: document.getElementById('startBtn'),
+            gameOverScreen: document.getElementById('gameOverScreen'),
+            playAgainBtn: document.getElementById('playAgainBtn'),
+            playerCar: document.getElementById('playerCar'),
+            scoreDisplay: document.getElementById('scoreDisplay'),
+            highScoreDisplay: document.getElementById('highScoreDisplay'),
+            levelDisplay: document.getElementById('levelDisplay'),
+            questionText: document.getElementById('questionText'),
+            gatesContainer: document.getElementById('gatesContainer'),
+            feedback: document.getElementById('feedback'),
+            livesBox: document.getElementById('livesBox'),
+            streakDisplay: document.getElementById('streakDisplay'),
+            comboText: document.getElementById('comboText'),
+            difficultyBadge: document.getElementById('difficultyBadge'),
+            leftBtn: document.getElementById('leftBtn'),
+            rightBtn: document.getElementById('rightBtn'),
+            speedLines: document.getElementById('speedLines'),
+            grassLeft: document.getElementById('grassLeft'),
+            grassRight: document.getElementById('grassRight')
+        };
+
+        // Question Generators based on difficulty
+        const questionGenerators = {
+            // Level 1-2: Simple addition (single digits)
+            simpleAddition: () => {
+                const a = Math.floor(Math.random() * 9) + 1;
+                const b = Math.floor(Math.random() * 9) + 1;
+                return {
+                    question: `${a} + ${b} = ?`,
+                    answer: a + b,
+                    type: 'addition'
+                };
+            },
+            
+            // Level 2-3: Simple subtraction (result positive)
+            simpleSubtraction: () => {
+                const a = Math.floor(Math.random() * 10) + 5;
+                const b = Math.floor(Math.random() * a) + 1;
+                return {
+                    question: `${a} - ${b} = ?`,
+                    answer: a - b,
+                    type: 'subtraction'
+                };
+            },
+            
+            // Level 3-4: Addition with larger numbers
+            mediumAddition: () => {
+                const a = Math.floor(Math.random() * 20) + 10;
+                const b = Math.floor(Math.random() * 15) + 5;
+                return {
+                    question: `${a} + ${b} = ?`,
+                    answer: a + b,
+                    type: 'addition'
+                };
+            },
+            
+            // Level 4-5: Subtraction with larger numbers
+            mediumSubtraction: () => {
+                const a = Math.floor(Math.random() * 30) + 20;
+                const b = Math.floor(Math.random() * 20) + 5;
+                return {
+                    question: `${a} - ${b} = ?`,
+                    answer: a - b,
+                    type: 'subtraction'
+                };
+            },
+            
+            // Level 5-6: Simple multiplication
+            simpleMultiplication: () => {
+                const a = Math.floor(Math.random() * 5) + 2;
+                const b = Math.floor(Math.random() * 5) + 2;
+                return {
+                    question: `${a} × ${b} = ?`,
+                    answer: a * b,
+                    type: 'multiplication'
+                };
+            },
+            
+            // Level 6-7: Mixed operations
+            mixedOperations: () => {
+                const ops = ['+', '-', '×'];
+                const op = ops[Math.floor(Math.random() * ops.length)];
+                let a, b, answer;
+                
+                if (op === '+') {
+                    a = Math.floor(Math.random() * 30) + 10;
+                    b = Math.floor(Math.random() * 20) + 5;
+                    answer = a + b;
+                } else if (op === '-') {
+                    a = Math.floor(Math.random() * 40) + 20;
+                    b = Math.floor(Math.random() * a) + 1;
+                    answer = a - b;
+                } else {
+                    a = Math.floor(Math.random() * 8) + 2;
+                    b = Math.floor(Math.random() * 8) + 2;
+                    answer = a * b;
+                }
+                
+                return {
+                    question: `${a} ${op} ${b} = ?`,
+                    answer: answer,
+                    type: 'mixed'
+                };
+            },
+            
+            // Level 7+: Harder multiplication
+            hardMultiplication: () => {
+                const a = Math.floor(Math.random() * 10) + 3;
+                const b = Math.floor(Math.random() * 10) + 3;
+                return {
+                    question: `${a} × ${b} = ?`,
+                    answer: a * b,
+                    type: 'multiplication'
+                };
+            },
+            
+            // Level 8+: Simple division
+            simpleDivision: () => {
+                const b = Math.floor(Math.random() * 8) + 2;
+                const answer = Math.floor(Math.random() * 8) + 2;
+                const a = b * answer;
+                return {
+                    question: `${a} ÷ ${b} = ?`,
+                    answer: answer,
+                    type: 'division'
+                };
+            },
+            
+            // Critical thinking: Find the missing number
+            missingNumber: () => {
+                const a = Math.floor(Math.random() * 10) + 1;
+                const c = Math.floor(Math.random() * 15) + a + 1;
+                const b = c - a;
+                return {
+                    question: `${a} + ? = ${c}`,
+                    answer: b,
+                    type: 'critical'
+                };
+            },
+            
+            // Pattern recognition (what comes next)
+            patternSimple: () => {
+                const start = Math.floor(Math.random() * 5) + 1;
+                const step = Math.floor(Math.random() * 4) + 2;
+                const sequence = [start, start + step, start + step * 2];
+                const answer = start + step * 3;
+                return {
+                    question: `${sequence.join(', ')}, ?`,
+                    answer: answer,
+                    type: 'pattern'
+                };
+            }
+        };
+
+        // Get question based on level
+        function getQuestionForLevel(level) {
+            const generators = [];
+            
+            if (level <= 2) {
+                generators.push(questionGenerators.simpleAddition);
+            }
+            if (level >= 2 && level <= 4) {
+                generators.push(questionGenerators.simpleSubtraction);
+                generators.push(questionGenerators.missingNumber);
+            }
+            if (level >= 3 && level <= 5) {
+                generators.push(questionGenerators.mediumAddition);
+            }
+            if (level >= 4 && level <= 6) {
+                generators.push(questionGenerators.mediumSubtraction);
+                generators.push(questionGenerators.patternSimple);
+            }
+            if (level >= 5 && level <= 7) {
+                generators.push(questionGenerators.simpleMultiplication);
+            }
+            if (level >= 6 && level <= 8) {
+                generators.push(questionGenerators.mixedOperations);
+            }
+            if (level >= 7) {
+                generators.push(questionGenerators.hardMultiplication);
+            }
+            if (level >= 8) {
+                generators.push(questionGenerators.simpleDivision);
+            }
+            
+            const generator = generators[Math.floor(Math.random() * generators.length)];
+            return generator();
+        }
+
+        // Generate wrong answer that's believable
+        function generateWrongAnswer(correctAnswer, type) {
+            const variations = [
+                correctAnswer + Math.floor(Math.random() * 5) + 1,
+                correctAnswer - Math.floor(Math.random() * 5) - 1,
+                correctAnswer + 10,
+                correctAnswer - 10,
+                Math.abs(correctAnswer * 2),
+                Math.floor(correctAnswer / 2) || correctAnswer + 3
+            ].filter(v => v !== correctAnswer && v > 0);
+            
+            return variations[Math.floor(Math.random() * variations.length)];
+        }
+
+        // Generate new question
+        function generateQuestion() {
+            const questionData = getQuestionForLevel(state.level);
+            state.currentQuestion = questionData.question;
+            state.correctAnswer = questionData.answer;
+            state.wrongAnswer = generateWrongAnswer(questionData.answer, questionData.type);
+            state.correctLane = Math.random() < 0.5 ? 'left' : 'right';
+            
+            elements.questionText.textContent = state.currentQuestion;
+        }
+
+        // Spawn gate pair
+        function spawnGate() {
+            if (!state.isPlaying) return;
+            
+            generateQuestion();
+            
+            const gateLeft = document.createElement('div');
+            const gateRight = document.createElement('div');
+            
+            gateLeft.className = `gate left ${state.correctLane === 'left' ? 'correct' : 'incorrect'}`;
+            gateRight.className = `gate right ${state.correctLane === 'right' ? 'correct' : 'incorrect'}`;
+            
+            gateLeft.textContent = state.correctLane === 'left' ? state.correctAnswer : state.wrongAnswer;
+            gateRight.textContent = state.correctLane === 'right' ? state.correctAnswer : state.wrongAnswer;
+            
+            gateLeft.style.top = '-80px';
+            gateRight.style.top = '-80px';
+            
+            const gateData = {
+                leftEl: gateLeft,
+                rightEl: gateRight,
+                correctLane: state.correctLane,
+                y: -80,
+                passed: false,
+                correctAnswer: state.correctAnswer,
+                wrongAnswer: state.wrongAnswer
+            };
+            
+            state.gates.push(gateData);
+            elements.gatesContainer.appendChild(gateLeft);
+            elements.gatesContainer.appendChild(gateRight);
+        }
+
+        // Update game
+        let lastTime = 0;
+        function gameLoop(currentTime) {
+            if (!state.isPlaying) return;
+            
+            const delta = (currentTime - lastTime) / 1000;
+            lastTime = currentTime;
+            
+            // Calculate speed based on level (faster as level increases)
+            // Base speed 250, increases by 60 per level for more noticeable acceleration
+            const pixelsPerSecond = 250 + (state.level * 60);
+            
+            // Update road animation speed
+            const roadLine = document.querySelector('.road-line');
+            const animDuration = Math.max(0.2, 0.5 - (state.level * 0.03));
+            roadLine.style.animationDuration = `${animDuration}s`;
+            
+            // Update gates
+            const playerBottom = 120;
+            const playerTop = playerBottom + 60;
+            const carCenterX = state.playerLane === 'left' ? 
+                (window.innerWidth > 520 ? 140 - 70 : 120 - 60) : 
+                (window.innerWidth > 520 ? 140 + 70 : 120 + 60);
+            
+            for (let i = state.gates.length - 1; i >= 0; i--) {
+                const gate = state.gates[i];
+                gate.y += pixelsPerSecond * delta;
+                
+                gate.leftEl.style.top = `${gate.y}px`;
+                gate.rightEl.style.top = `${gate.y}px`;
+                
+                // Check collision
+                const gateBottom = gate.y + 70;
+                const gameHeight = elements.startScreen.parentElement.offsetHeight;
+                const collisionZoneTop = gameHeight - playerTop - 20;
+                const collisionZoneBottom = gameHeight - playerBottom + 20;
+                
+                if (!gate.passed && gate.y >= collisionZoneTop && gate.y <= collisionZoneBottom) {
+                    gate.passed = true;
+                    
+                    const isCorrect = state.playerLane === gate.correctLane;
+                    
+                    if (isCorrect) {
+                        handleCorrectAnswer();
+                    } else {
+                        handleWrongAnswer();
+                    }
+                }
+                
+                // Remove gates that are off screen
+                if (gate.y > 900) {
+                    gate.leftEl.remove();
+                    gate.rightEl.remove();
+                    state.gates.splice(i, 1);
+                }
+            }
+            
+            state.animationFrame = requestAnimationFrame(gameLoop);
+        }
+
+        // Handle correct answer
+        function handleCorrectAnswer() {
+            state.streak++;
+            state.correctAnswers++;
+            state.questionsAnswered++;
+            
+            if (state.streak > state.bestStreak) {
+                state.bestStreak = state.streak;
+            }
+            
+            // Calculate score with streak bonus
+            const basePoints = 10 * state.level;
+            const streakBonus = Math.floor(state.streak / 3);
+            const points = basePoints * (1 + streakBonus * 0.5);
+            state.score += Math.floor(points);
+            
+            updateDisplay();
+            showFeedback(true);
+            
+            // Level up every 5 correct answers
+            if (state.correctAnswers % 5 === 0) {
+                levelUp();
+            }
+            
+            // Update streak display
+            updateStreakDisplay();
+        }
+
+        // Handle wrong answer
+        function handleWrongAnswer() {
+            state.streak = 0;
+            state.lives--;
+            state.questionsAnswered++;
+            
+            updateDisplay();
+            showFeedback(false);
+            updateLivesDisplay();
+            updateStreakDisplay();
+            
+            // Shake effect on car
+            elements.playerCar.style.animation = 'none';
+            elements.playerCar.offsetHeight; // Trigger reflow
+            elements.playerCar.style.animation = 'shake 0.3s';
+            
+            if (state.lives <= 0) {
+                endGame();
+            }
+        }
+
+        // Level up
+        function levelUp() {
+            state.level++;
+            updateDisplay();
+            updateDifficultyBadge();
+            
+            // Show level up feedback
+            const feedback = elements.feedback;
+            feedback.textContent = `⬆️ LEVEL ${state.level}!`;
+            feedback.className = 'feedback correct-feedback';
+            feedback.style.animation = 'none';
+            feedback.offsetHeight;
+            feedback.style.animation = 'feedback-pop 0.8s ease-out forwards';
+            
+            // Speed up gate spawning - more aggressive decrease
+            clearInterval(state.gateSpawnInterval);
+            const spawnRate = Math.max(1200, 2800 - (state.level * 200));
+            state.gateSpawnInterval = setInterval(spawnGate, spawnRate);
+            
+            // Update speed lines
+            if (state.level >= 5) {
+                elements.speedLines.classList.add('active');
+            }
+        }
+
+        // Update displays
+        function updateDisplay() {
+            elements.scoreDisplay.textContent = state.score;
+            elements.levelDisplay.textContent = state.level;
+            elements.highScoreDisplay.textContent = state.highScore;
+        }
+
+        function updateLivesDisplay() {
+            const hearts = elements.livesBox.querySelectorAll('.life');
+            hearts.forEach((heart, i) => {
+                if (i >= state.lives) {
+                    heart.classList.add('lost');
+                } else {
+                    heart.classList.remove('lost');
+                }
+            });
+        }
+
+        function updateStreakDisplay() {
+            elements.streakDisplay.textContent = `🔥 Streak: ${state.streak}`;
+            
+            if (state.streak >= 3) {
+                elements.streakDisplay.classList.add('visible');
+                
+                const multiplier = 1 + Math.floor(state.streak / 3) * 0.5;
+                elements.comboText.textContent = `${multiplier}x COMBO!`;
+                elements.comboText.classList.add('visible');
+            } else {
+                elements.streakDisplay.classList.remove('visible');
+                elements.comboText.classList.remove('visible');
+            }
+        }
+
+        function updateDifficultyBadge() {
+            const badge = elements.difficultyBadge;
+            badge.classList.remove('easy', 'medium', 'hard', 'expert');
+            
+            if (state.level <= 2) {
+                badge.textContent = 'Easy';
+                badge.classList.add('easy');
+            } else if (state.level <= 4) {
+                badge.textContent = 'Medium';
+                badge.classList.add('medium');
+            } else if (state.level <= 6) {
+                badge.textContent = 'Hard';
+                badge.classList.add('hard');
+            } else {
+                badge.textContent = 'Expert';
+                badge.classList.add('expert');
+            }
+        }
+
+        // Show feedback
+        function showFeedback(isCorrect) {
+            const feedback = elements.feedback;
+            feedback.textContent = isCorrect ? '✓ Correct!' : '✗ Wrong!';
+            feedback.className = `feedback ${isCorrect ? 'correct-feedback' : 'incorrect-feedback'}`;
+            feedback.style.animation = 'none';
+            feedback.offsetHeight; // Trigger reflow
+            feedback.style.animation = 'feedback-pop 0.8s ease-out forwards';
+        }
+
+        // Move player
+        function movePlayer(direction) {
+            if (!state.isPlaying) return;
+            
+            if (direction === 'left') {
+                state.playerLane = 'left';
+                elements.playerCar.classList.remove('lane-right');
+                elements.playerCar.classList.add('lane-left');
+            } else {
+                state.playerLane = 'right';
+                elements.playerCar.classList.remove('lane-left');
+                elements.playerCar.classList.add('lane-right');
+            }
+        }
+
+        // Start game
+        function startGame() {
+            // Reset state
+            state.score = 0;
+            state.level = 1;
+            state.lives = 3;
+            state.streak = 0;
+            state.bestStreak = 0;
+            state.questionsAnswered = 0;
+            state.correctAnswers = 0;
+            state.playerLane = 'left';
+            state.gates = [];
+            state.isPlaying = true;
+            
+            // Clear existing gates
+            elements.gatesContainer.innerHTML = '';
+            
+            // Reset displays
+            updateDisplay();
+            updateLivesDisplay();
+            updateStreakDisplay();
+            updateDifficultyBadge();
+            
+            // Reset player position
+            elements.playerCar.classList.remove('lane-right');
+            elements.playerCar.classList.add('lane-left');
+            
+            // Hide screens
+            elements.startScreen.classList.add('hidden');
+            elements.gameOverScreen.classList.remove('visible');
+            elements.speedLines.classList.remove('active');
+            
+            // Create speed lines
+            createSpeedLines();
+            
+            // Start spawning gates (faster initial rate)
+            spawnGate();
+            state.gateSpawnInterval = setInterval(spawnGate, 2500);
+            
+            // Start game loop
+            lastTime = performance.now();
+            state.animationFrame = requestAnimationFrame(gameLoop);
+        }
+
+        // End game
+        function endGame() {
+            state.isPlaying = false;
+            clearInterval(state.gateSpawnInterval);
+            cancelAnimationFrame(state.animationFrame);
+            
+            // Check for new high score
+            const isNewHighScore = state.score > state.highScore;
+            if (isNewHighScore) {
+                state.highScore = state.score;
+                localStorage.setItem('mathRacerHighScore', state.highScore);
+            }
+            
+            // Update final stats
+            document.getElementById('finalScore').textContent = state.score;
+            document.getElementById('bestScoreDisplay').textContent = state.highScore;
+            document.getElementById('statAnswered').textContent = state.questionsAnswered;
+            document.getElementById('statCorrect').textContent = state.correctAnswers;
+            document.getElementById('statStreak').textContent = state.bestStreak;
+            document.getElementById('statLevel').textContent = state.level;
+            
+            // Show/hide new high score indicator
+            const newHighScoreEl = document.getElementById('newHighScore');
+            if (isNewHighScore) {
+                newHighScoreEl.classList.add('visible');
+            } else {
+                newHighScoreEl.classList.remove('visible');
+            }
+            
+            // Show game over screen
+            elements.gameOverScreen.classList.add('visible');
+        }
+
+        // Create decorative elements
+        function createSpeedLines() {
+            elements.speedLines.innerHTML = '';
+            for (let i = 0; i < 8; i++) {
+                const line = document.createElement('div');
+                line.className = 'speed-line';
+                line.style.left = `${Math.random() * 100}%`;
+                line.style.animationDelay = `${Math.random() * 0.3}s`;
+                elements.speedLines.appendChild(line);
+            }
+        }
+
+        // Event Listeners
+        elements.startBtn.addEventListener('click', startGame);
+        elements.playAgainBtn.addEventListener('click', startGame);
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                movePlayer('left');
+            } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                movePlayer('right');
+            } else if (e.key === ' ' && !state.isPlaying) {
+                startGame();
+            }
+        });
+
+        // Mobile controls
+        elements.leftBtn.addEventListener('click', () => movePlayer('left'));
+        elements.rightBtn.addEventListener('click', () => movePlayer('right'));
+
+        // Touch controls (swipe)
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchEndX - touchStartX;
+            
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    movePlayer('right');
+                } else {
+                    movePlayer('left');
+                }
+            }
+        });
+
+        // Add shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Create stars for night sky
+        function createStars() {
+            const starsContainer = document.getElementById('starsContainer');
+            starsContainer.innerHTML = '';
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                star.style.width = `${Math.random() * 2 + 1}px`;
+                star.style.height = star.style.width;
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Initialize on load
+        createStars();
+        elements.highScoreDisplay.textContent = state.highScore;
+    </script>
+</body>
+</html>
